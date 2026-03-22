@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.ownerUid;
+    }
+    
+    function isNewDocOwner() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.ownerUid;
+    }
+
+    function isAuthor() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isNewAuthor() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.uid;
+    }
+
+    function isValidAnimal(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() < 50 &&
+             data.breed is string && data.breed.size() > 0 && data.breed.size() < 50 &&
+             data.birthDate is string &&
+             data.status in ['ativo', 'vendido', 'morto'] &&
+             data.gender in ['macho', 'fêmea'] &&
+             data.ownerUid == request.auth.uid &&
+             (!('photoUrl' in data) || data.photoUrl is string || data.photoUrl == null) &&
+             (!('photoUrls' in data) || data.photoUrls is list) &&
+             (!('name' in data) || data.name is string || data.name == null) &&
+             (!('observations' in data) || data.observations is string || data.observations == null) &&
+             (!('lotId' in data) || data.lotId is string || data.lotId == null) &&
+             (!('motherId' in data) || data.motherId is string || data.motherId == null) &&
+             (!('fatherId' in data) || data.fatherId is string || data.fatherId == null);
+    }
+
+    function isValidRecord(data) {
+      return data.animalId is string &&
+             data.type in ['pesagem', 'vacina', 'tratamento', 'reprodução', 'parto', 'cobertura', 'mortalidade', 'venda'] &&
+             data.date is string &&
+             data.ownerUid == request.auth.uid;
+    }
+
+    function isValidLot(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.ownerUid == request.auth.uid;
+    }
+
+    function isValidPost(data) {
+      return data.uid == request.auth.uid &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 5000;
+    }
+
+    function isValidComment(data) {
+      return data.uid == request.auth.uid &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000;
+    }
+
+    function isValidFeeding(data) {
+      return data.ownerUid == request.auth.uid &&
+             data.type in ['volumoso', 'concentrado', 'suplemento'] &&
+             data.amount is number && data.amount >= 0;
+    }
+
+    function isValidHealthAlert(data) {
+      return data.ownerUid == request.auth.uid &&
+             data.type in ['vacina', 'verminose', 'manejo'] &&
+             data.title is string && data.title.size() > 0;
+    }
+
+    match /animals/{animalId} {
+      allow read: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidAnimal(request.resource.data);
+      allow update: if isDocOwner() && isNewDocOwner() && isValidAnimal(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+    
+    match /records/{recordId} {
+      allow read: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidRecord(request.resource.data);
+      allow update: if isDocOwner() && isNewDocOwner() && isValidRecord(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+    
+    match /lots/{lotId} {
+      allow read: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidLot(request.resource.data);
+      allow update: if isDocOwner() && isNewDocOwner() && isValidLot(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isNewAuthor() && isValidPost(request.resource.data);
+      allow update: if isAuthenticated() && (isAuthor() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentsCount']));
+      allow delete: if isAuthor();
+    }
+
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isNewAuthor() && isValidComment(request.resource.data);
+      allow update: if isAuthor() && isValidComment(request.resource.data);
+      allow delete: if isAuthor();
+    }
+
+    match /feeding/{feedingId} {
+      allow read: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidFeeding(request.resource.data);
+      allow update: if isDocOwner() && isNewDocOwner() && isValidFeeding(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+
+    match /health_alerts/{alertId} {
+      allow read: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidHealthAlert(request.resource.data);
+      allow update: if isDocOwner() && isNewDocOwner() && isValidHealthAlert(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+
+    match /articles/{articleId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin via console for now
+    }
+
+    match /forum_questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create: if isNewAuthor() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAuthenticated() && (isAuthor() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved']));
+      allow delete: if isAuthor();
+    }
+  }
+}

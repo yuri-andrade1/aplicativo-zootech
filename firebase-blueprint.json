@@ -1,0 +1,176 @@
+{
+  "entities": {
+    "Animal": {
+      "title": "Animal",
+      "description": "Dados básicos do animal no rebanho.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificação única (brinco)." },
+        "name": { "type": "string", "description": "Nome do animal (opcional)." },
+        "breed": { "type": "string", "description": "Raça do animal." },
+        "birthDate": { "type": "string", "format": "date", "description": "Data de nascimento." },
+        "weight": { "type": "number", "description": "Peso atual (kg)." },
+        "status": { "type": "string", "enum": ["ativo", "vendido", "morto"], "description": "Status atual no rebanho." },
+        "gender": { "type": "string", "enum": ["macho", "fêmea"], "description": "Gênero do animal." },
+        "lotId": { "type": "string", "description": "ID do lote/pasto." },
+        "motherId": { "type": "string", "description": "ID da mãe (brinco ou nome)." },
+        "fatherId": { "type": "string", "description": "ID do pai (brinco ou nome)." },
+        "observations": { "type": "string", "description": "Observações físicas ou comportamentais." },
+        "ownerUid": { "type": "string", "description": "UID do proprietário." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "breed", "birthDate", "status", "gender", "ownerUid"]
+    },
+    "Record": {
+      "title": "Registro Zootécnico",
+      "description": "Eventos zootécnicos (pesagem, vacina, parto, etc).",
+      "type": "object",
+      "properties": {
+        "animalId": { "type": "string", "description": "ID do animal associado." },
+        "type": { "type": "string", "enum": ["pesagem", "vacina", "tratamento", "reprodução", "parto", "cobertura", "mortalidade", "venda"], "description": "Tipo de registro." },
+        "date": { "type": "string", "format": "date", "description": "Data do evento." },
+        "value": { "type": "string", "description": "Valor ou descrição do evento (ex: peso, nome da vacina)." },
+        "notes": { "type": "string", "description": "Observações adicionais." },
+        "ownerUid": { "type": "string", "description": "UID do proprietário." }
+      },
+      "required": ["animalId", "type", "date", "ownerUid"]
+    },
+    "Lot": {
+      "title": "Lote",
+      "description": "Lote ou pasto para organização do rebanho.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Nome do lote." },
+        "description": { "type": "string", "description": "Descrição do lote." },
+        "ownerUid": { "type": "string", "description": "UID do proprietário." }
+      },
+      "required": ["name", "ownerUid"]
+    },
+    "Post": {
+      "title": "Postagem",
+      "description": "Postagem no feed social da comunidade.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "likes": { "type": "array", "items": { "type": "string" } },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "authorName", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comentário",
+      "description": "Comentário em uma postagem.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "uid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "uid", "authorName", "content", "createdAt"]
+    },
+    "Feeding": {
+      "title": "Alimentação",
+      "description": "Registro de alimentação do rebanho.",
+      "type": "object",
+      "properties": {
+        "lotId": { "type": "string" },
+        "animalId": { "type": "string" },
+        "type": { "type": "string", "enum": ["volumoso", "concentrado", "suplemento"] },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "ownerUid": { "type": "string" }
+      },
+      "required": ["type", "description", "amount", "date", "ownerUid"]
+    },
+    "HealthAlert": {
+      "title": "Alerta Sanitário",
+      "description": "Alerta de vacina, vermifugação ou manejo.",
+      "type": "object",
+      "properties": {
+        "animalId": { "type": "string" },
+        "lotId": { "type": "string" },
+        "type": { "type": "string", "enum": ["vacina", "verminose", "manejo"] },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "completed": { "type": "boolean" },
+        "ownerUid": { "type": "string" }
+      },
+      "required": ["type", "title", "date", "completed", "ownerUid"]
+    },
+    "Article": {
+      "title": "Artigo Educativo",
+      "description": "Conteúdo educativo para o produtor.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string", "enum": ["dica", "curiosidade", "prática", "artigo"] },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "category", "createdAt"]
+    },
+    "ForumQuestion": {
+      "title": "Pergunta do Fórum",
+      "description": "Pergunta ou dúvida postada no fórum de suporte.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "resolved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "authorName", "title", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/animals/{animalId}": {
+      "schema": "Animal",
+      "description": "Coleção de animais do rebanho."
+    },
+    "/records/{recordId}": {
+      "schema": "Record",
+      "description": "Coleção de registros zootécnicos."
+    },
+    "/lots/{lotId}": {
+      "schema": "Lot",
+      "description": "Coleção de lotes/pastos."
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Coleção de postagens do feed social."
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Coleção de comentários das postagens."
+    },
+    "/feeding/{feedingId}": {
+      "schema": "Feeding",
+      "description": "Coleção de registros de alimentação."
+    },
+    "/health_alerts/{alertId}": {
+      "schema": "HealthAlert",
+      "description": "Coleção de alertas sanitários."
+    },
+    "/articles/{articleId}": {
+      "schema": "Article",
+      "description": "Coleção de artigos educativos."
+    },
+    "/forum_questions/{questionId}": {
+      "schema": "ForumQuestion",
+      "description": "Coleção de perguntas do fórum."
+    }
+  }
+}
